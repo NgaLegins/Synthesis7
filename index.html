@@ -1,28 +1,41 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+
 <style>
-  /* 1. Il Contenitore: Mantiene le immagini impilate */
+  /* Aggiungo uno sfondo scuro alla pagina per far risaltare il testo bianco */
+  body {
+      background-color: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+  }
+
+  /* --- STILI IMMAGINE (Invariati rispetto a prima) --- */
   .hydra-reveal-container {
     position: relative;
     width: 100%;
-    max-width: 800px; /* Imposta la larghezza massima desiderata */
-    margin: 0 auto;
+    max-width: 800px;
+    /* margin: 0 auto;  Rimossa centratura automatica perché ora usiamo flex nel body */
     overflow: hidden;
-    cursor: crosshair; /* Cambia cursore per indicare interazione */
-    border-radius: 12px; /* Opzionale: arrotonda gli angoli */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3); /* Opzionale: ombra estetica */
+    cursor: crosshair;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
 
-  /* 2. L'immagine "Sotto" (Background) - Quella che appare con l'aura */
   .hydra-image-under {
     display: block;
     width: 100%;
     height: auto;
-    user-select: none; /* Previene la selezione blu dell'immagine */
+    user-select: none;
   }
 
-  /* 3. L'immagine "Sopra" (Cover) - Quella visibile all'inizio */
   .hydra-image-over {
     position: absolute;
     top: 0;
@@ -32,14 +45,8 @@
     background-image: url('https://github.com/NgaLegins/Synthesis7/blob/main/Gemini%20Generated%20Image%20(23).png?raw=true');
     background-size: cover;
     background-position: center;
-    pointer-events: none; /* Lascia passare gli eventi mouse al contenitore */
+    pointer-events: none;
     
-    /* LA MAGIA DELL'AURA:
-       Usiamo una maschera CSS.
-       - transparent: rende l'immagine "over" invisibile (mostrando quella sotto).
-       - black: rende l'immagine "over" visibile.
-       - var(--x) e var(--y): coordinate aggiornate da JS.
-    */
     -webkit-mask-image: radial-gradient(
       circle 200px at var(--x, -1000px) var(--y, -1000px), 
       transparent 10%, 
@@ -53,8 +60,70 @@
       black 50%
     );
     
-    /* Transizione fluida per l'effetto (opzionale) */
     transition: -webkit-mask-image 0.1s ease, mask-image 0.1s ease;
+  }
+
+  /* --- NUOVI STILI PER IL TESTO --- */
+  .hydra-caption-container {
+      font-family: 'Bebas Neue', sans-serif;
+      color: white;
+      text-align: center;
+      margin-top: 25px;
+      font-size: 3rem; /* Dimensione del testo */
+      letter-spacing: 2px;
+      position: relative;
+      /* Altezza fissa per evitare che il testo salti quando cambia */
+      height: 3.5rem; 
+      width: 100%;
+      max-width: 800px;
+  }
+
+  /* Posizioniamo i due testi uno sopra l'altro */
+  .caption-text {
+      position: absolute;
+      width: 100%;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+  }
+
+  /* Stato iniziale */
+  .text-default {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+  }
+  .text-hover {
+      opacity: 0;
+      transform: translateY(-40%) scale(0.95); /* Leggero effetto di entrata */
+      color: #ff3333; /* Opzionale: un colore diverso per "DETECTS YOU" per enfasi */
+  }
+
+  /* --- STATO "ATTIVO" (Quando il mouse è sull'immagine) --- */
+  /* Quando il contenitore ha la classe .is-active (aggiunta da JS) */
+  .hydra-caption-container.is-active .text-default {
+      opacity: 0;
+      transform: translateY(-60%) scale(0.95);
+  }
+  
+  .hydra-caption-container.is-active .text-hover {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+      /* Togli il commento sotto se vuoi che il testo "lampeggi" leggermente */
+      /* text-shadow: 0 0 10px rgba(255, 50, 50, 0.7); */
+  }
+
+  /* Stili per mobile per ridurre un po' il testo */
+  @media (max-width: 600px) {
+      .hydra-caption-container {
+          font-size: 2rem;
+          height: 2.5rem;
+      }
+       .hydra-image-over {
+         /* Su mobile riduciamo un po' l'aura */
+         -webkit-mask-image: radial-gradient(circle 150px at var(--x, -1000px) var(--y, -1000px), transparent 10%, rgba(0,0,0,0.5) 30%, black 50%);
+         mask-image: radial-gradient(circle 150px at var(--x, -1000px) var(--y, -1000px), transparent 10%, rgba(0,0,0,0.5) 30%, black 50%);
+       }
   }
 </style>
 </head>
@@ -66,19 +135,27 @@
     class="hydra-image-under" 
     alt="Hidden Layer"
   >
-  
   <div class="hydra-image-over"></div>
 </div>
+
+<div class="hydra-caption-container" id="hydraCaption">
+    <span class="caption-text text-default">THE SYNTHESIS DOESN'T CHANGE YOU</span>
+    <span class="caption-text text-hover">DETECTS YOU</span>
+</div>
+
 
 <script>
   const container = document.getElementById('hydraContainer');
   const overlay = container.querySelector('.hydra-image-over');
+  // Riferimento al nuovo contenitore del testo
+  const captionContainer = document.getElementById('hydraCaption');
 
-  // Funzione per aggiornare la posizione della maschera
   function updateMask(x, y) {
-    // Aggiorniamo le variabili CSS --x e --y
     overlay.style.setProperty('--x', x + 'px');
     overlay.style.setProperty('--y', y + 'px');
+    // Quando aggiorniamo la maschera, significa che siamo attivi.
+    // Aggiungiamo la classe che fa cambiare il testo.
+    captionContainer.classList.add('is-active');
   }
 
   // Evento Mouse (Desktop)
@@ -91,19 +168,29 @@
 
   // Evento Touch (Mobile)
   container.addEventListener('touchmove', (e) => {
-    e.preventDefault(); // Previene lo scroll della pagina mentre tocchi l'immagine
+    e.preventDefault();
     const rect = container.getBoundingClientRect();
-    const touch = e.touches[0];
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-    updateMask(x, y);
+    // Controllo di sicurezza per assicurarsi che ci sia un tocco
+    if (e.touches && e.touches[0]) {
+        const touch = e.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        updateMask(x, y);
+    }
   }, { passive: false });
 
-  // Reset quando il mouse esce (opzionale: nasconde l'aura spostandola via)
-  container.addEventListener('mouseleave', () => {
+  // Reset quando il mouse/dito esce dall'area dell'immagine
+  const resetEffect = () => {
     overlay.style.setProperty('--x', '-1000px');
     overlay.style.setProperty('--y', '-1000px');
-  });
+    // Rimuoviamo la classe per far tornare il testo originale
+    captionContainer.classList.remove('is-active');
+  };
+
+  container.addEventListener('mouseleave', resetEffect);
+  container.addEventListener('touchend', resetEffect);
+  container.addEventListener('touchcancel', resetEffect);
+
 </script>
 
 </body>
