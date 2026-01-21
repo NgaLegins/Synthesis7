@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<style>
+  /* 1. Il Contenitore: Mantiene le immagini impilate */
+  .hydra-reveal-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px; /* Imposta la larghezza massima desiderata */
+    margin: 0 auto;
+    overflow: hidden;
+    cursor: crosshair; /* Cambia cursore per indicare interazione */
+    border-radius: 12px; /* Opzionale: arrotonda gli angoli */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); /* Opzionale: ombra estetica */
+  }
+
+  /* 2. L'immagine "Sotto" (Background) - Quella che appare con l'aura */
+  .hydra-image-under {
+    display: block;
+    width: 100%;
+    height: auto;
+    user-select: none; /* Previene la selezione blu dell'immagine */
+  }
+
+  /* 3. L'immagine "Sopra" (Cover) - Quella visibile all'inizio */
+  .hydra-image-over {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://github.com/NgaLegins/Synthesis7/blob/main/Gemini%20Generated%20Image%20(23).png?raw=true');
+    background-size: cover;
+    background-position: center;
+    pointer-events: none; /* Lascia passare gli eventi mouse al contenitore */
+    
+    /* LA MAGIA DELL'AURA:
+       Usiamo una maschera CSS.
+       - transparent: rende l'immagine "over" invisibile (mostrando quella sotto).
+       - black: rende l'immagine "over" visibile.
+       - var(--x) e var(--y): coordinate aggiornate da JS.
+    */
+    -webkit-mask-image: radial-gradient(
+      circle 200px at var(--x, -1000px) var(--y, -1000px), 
+      transparent 10%, 
+      rgba(0,0,0,0.5) 30%,
+      black 50%
+    );
+    mask-image: radial-gradient(
+      circle 200px at var(--x, -1000px) var(--y, -1000px), 
+      transparent 10%, 
+      rgba(0,0,0,0.5) 30%,
+      black 50%
+    );
+    
+    /* Transizione fluida per l'effetto (opzionale) */
+    transition: -webkit-mask-image 0.1s ease, mask-image 0.1s ease;
+  }
+</style>
+</head>
+<body>
+
+<div class="hydra-reveal-container" id="hydraContainer">
+  <img 
+    src="https://github.com/NgaLegins/Synthesis7/blob/main/Gemini%20Generated%20Image%20(24).png?raw=true" 
+    class="hydra-image-under" 
+    alt="Hidden Layer"
+  >
+  
+  <div class="hydra-image-over"></div>
+</div>
+
+<script>
+  const container = document.getElementById('hydraContainer');
+  const overlay = container.querySelector('.hydra-image-over');
+
+  // Funzione per aggiornare la posizione della maschera
+  function updateMask(x, y) {
+    // Aggiorniamo le variabili CSS --x e --y
+    overlay.style.setProperty('--x', x + 'px');
+    overlay.style.setProperty('--y', y + 'px');
+  }
+
+  // Evento Mouse (Desktop)
+  container.addEventListener('mousemove', (e) => {
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    updateMask(x, y);
+  });
+
+  // Evento Touch (Mobile)
+  container.addEventListener('touchmove', (e) => {
+    e.preventDefault(); // Previene lo scroll della pagina mentre tocchi l'immagine
+    const rect = container.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    updateMask(x, y);
+  }, { passive: false });
+
+  // Reset quando il mouse esce (opzionale: nasconde l'aura spostandola via)
+  container.addEventListener('mouseleave', () => {
+    overlay.style.setProperty('--x', '-1000px');
+    overlay.style.setProperty('--y', '-1000px');
+  });
+</script>
+
+</body>
+</html>
